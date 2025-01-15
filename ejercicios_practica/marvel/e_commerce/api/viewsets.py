@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
+from django.db.models import Q 
 
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
@@ -17,9 +17,9 @@ from rest_framework.pagination import (
     PageNumberPagination
 )
 
-from e_commerce.models import User
-from .serializers import UserSerializer, UpdatePasswordUserSerializer
-
+# Import your models correctly
+from e_commerce.models import User, WishList
+from .serializers import UserSerializer, UpdatePasswordUserSerializer, WishListSerializer
 
 # Genero una clase para configurar el paginado de la API.
 class ShortResultsSetPagination(PageNumberPagination):
@@ -29,7 +29,6 @@ class ShortResultsSetPagination(PageNumberPagination):
     # por página.
     page_size_query_param = 'page_size'
     max_page_size = 10
-
 
 # NOTE: Vemos que ahora los métodos para cada
 # método HTTP, en los viewsets directamente
@@ -78,11 +77,11 @@ class CustomUserViewSet(viewsets.ViewSet):
         # de no existir, retorna un código de estado 404.
         _user = get_object_or_404(self.queryset, pk=pk)
 
-        if _current_user != _user:
+        if (_current_user != _user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         user_serializer = self.serializer_class(
-            instance = _user,
+            instance=_user,
             data=request.data
         )
         if user_serializer.is_valid():
@@ -100,7 +99,7 @@ class CustomUserViewSet(viewsets.ViewSet):
         _current_user =  self._get_current_user()
         _user = get_object_or_404(self.queryset, pk=pk)
 
-        # if _current_user != _user:
+        # if (_current_user != _user):
         #     return Response(status=status.HTTP_403_FORBIDDEN)
 
         return Response(
@@ -130,7 +129,7 @@ class CustomUserViewSet(viewsets.ViewSet):
         _current_user =  self._get_current_user()
         _user = get_object_or_404(self.queryset, pk=pk)
 
-        if _current_user != _user:
+        if (_current_user != _user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         _user_serializer = UpdatePasswordUserSerializer(
@@ -236,3 +235,16 @@ class FilteringUserViewSet(viewsets.GenericViewSet):
             queryset = queryset.filter(is_staff=eval(_is_staff))
 
         return queryset
+
+class WishListViewSet(viewsets.ModelViewSet):
+    serializer_class = WishListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = PageNumberPagination
+    
+    def get_queryset(self):
+        queryset = WishList.objects.all().order_by('user__username')
+        username = self.request.query_params.get('username', None)
+        if username is not None:
+            queryset = queryset.filter(user__username=username)
+        return queryset
+

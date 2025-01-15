@@ -28,4 +28,6 @@ urlpatterns = [
     path('comics/delete/<int:pk>/', DestroyComicAPIView.as_view()),
     # User API Viewsets:
     path('users/', include('e_commerce.api.routers')),
+    path('e-commerce/api/comics/user/<str:username>/', ComicUserAPIView.as_view(), name='comic_list_user'),
+    path('', include('api.urls')),
 ]

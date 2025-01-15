@@ -47,6 +47,8 @@ THIRD_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'drf_yasg',
+    'django_filters',
+    'corsheaders',
 ]
 
 # Acá van las apps que creamos nosotros.
@@ -67,6 +69,8 @@ INSTALLED_APPS = BASE_APPS + THIRD_APPS + LOCAL_APPS
 #     'rest_framework',
 #     'rest_framework.authtoken',
 #     'drf_yasg',
+#     'django_filters',
+#     'corsheaders'
 # ]
 
 
@@ -79,6 +83,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     # Indicamos el tipo de paginado, y la cantidad de resultados a mostrar por página.
     # Ahora nuestras vistas genéricas van a tener paginado utilizando la clase
     # "PageNumberPagination".
@@ -91,6 +96,7 @@ REST_FRAMEWORK = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -120,6 +126,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'marvel.wsgi.application'
 
+CORS_ORIGIN_ALLOW_ALL = True
+ALLOWED_HOSTS = ['*']
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases

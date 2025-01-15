@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404
 
-from rest_framework import status
+from rest_framework import generics, permissions
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.decorators import api_view
 # (GET - ListAPIView) Listar todos los elementos en la entidad:
@@ -25,6 +25,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 
 # NOTE: Importamos este decorador para poder customizar los 
 # parámetros y responses en Swagger, para aquellas
@@ -323,3 +324,24 @@ class LoginUserAPIView(APIView):
             data=user_login_serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class ComicUserAPIView(generics.ListAPIView):
+    serializer_class = ComicSerializer
+    pagination_class = PageNumberPagination
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        username = self.kwargs['username']
+        wishlist_items = WishList.objects.filter(userusername=username, favorite=True, cart=True)
+        comic_ids = wishlist_items.values_list('comic', flat=True)
+        queryset = Comic.objects.filter(idin=comic_ids).order_by('title')
+
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(titleicontains=search) | Q(descriptionicontains=search)
+            )
+
+        return queryset
+
